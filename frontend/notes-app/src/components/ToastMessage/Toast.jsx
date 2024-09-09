@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { LuCheck } from "react-icons/lu";
 import { MdDelete } from "react-icons/md";
 
+//This is just a comment
 const Toast = ({ isShown, message, type, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
 
