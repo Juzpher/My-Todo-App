@@ -1,0 +1,106 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply transition-colors duration-200 ease-in-out;
+  }
+  html {
+    font-family: "Poppins", sans-serif;
+  }
+  body {
+    @apply bg-background-default dark:bg-background-dark;
+  }
+}
+
+
+/* Custom styles for Chrome's autofill background color */
+input:-webkit-autofill {
+  background-color: #f0f0f0 !important; /* Change this to your desired bg color */
+  -webkit-box-shadow: 0 0 0px 1000px #f0f0f0 inset; /* Match this to bg color */
+  color: #000 !important; /* Text color inside autocomplete */
+}
+
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  background-color: #f0f0f0 !important; /* Same bg color for hover/focus */
+  -webkit-box-shadow: 0 0 0px 1000px #f0f0f0 inset;
+  color: #000 !important; /* Text color */
+}
+
+
+@layer components {
+  .input-box {
+    @apply w-full text-sm text-text-default dark:text-text-dark bg-transparent dark:bg-primary-dark border-[1.5px] border-secondary-default dark:border-secondary-dark px-5 py-3 rounded mb-4 outline-none;
+  }
+
+  .input-label {
+    @apply text-xs text-text-default dark:text-text-dark uppercase;
+  }
+
+  .input-addEdit {
+    @apply text-text-default dark:text-text-dark bg-transparent dark:bg-secondary-dark/40 border-[1.5px] border-secondary-default dark:border-secondary-dark px-2 py-3 rounded mb-2 outline-none;
+  }
+
+  .btn-primary {
+    @apply w-full text-sm bg-accent-default dark:bg-accent-dark text-white p-2 rounded my-1 hover:bg-accent-effects dark:hover:bg-accent-effects;
+  }
+
+  .icon-btn {
+    @apply text-text-default dark:text-text-dark;
+  }
+
+  .selection-bttn {
+    @apply w-full p-2 text-text-default dark:text-text-dark  text-sm  uppercase;
+  }
+
+  .selection-bttn-default {
+    @apply hover:bg-secondary-default/30 hover:dark:bg-secondary-dark/30 bg-secondary-default/60 dark:bg-secondary-dark/60;
+  }
+
+  .card-indicator {
+    @apply w-full h-1 m-0 p-0 rounded-full;
+  }
+
+  .custom-transition {
+    transition: box-shadow 100ms ease-in-out, color 700ms ease-in-out;
+  }
+
+  .shadow-custom {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Light mode shadow */
+  }
+
+  .dark .shadow-custom {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5); /* Dark mode shadow */
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-in-out;
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  .animate-fade-out {
+    animation: fade-out 0.5s ease-in-out;
+  }
+}
