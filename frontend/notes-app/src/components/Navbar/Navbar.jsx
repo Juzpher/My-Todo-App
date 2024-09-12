@@ -5,7 +5,7 @@ import SearchBar from "../SearchBar/SearchBar";
 import ProfileInfo from "../Cards/ProfileInfo";
 import ThemeToggle from "../themeToggle/themeToggle";
 
-const Navbar = ({ userInfo, onSearchNote }) => {
+const Navbar = ({ userInfo, onSearchNote, imageLogo }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
@@ -35,8 +35,9 @@ const Navbar = ({ userInfo, onSearchNote }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
+            <img src={imageLogo} alt="logo" className="h-8 w-8 mr-2" />
             <h2 className="text-xl font-bold text-text-light dark:text-text-dark">
-              Notes
+              TaskFlow
             </h2>
           </div>
           <div className="hidden md:block">

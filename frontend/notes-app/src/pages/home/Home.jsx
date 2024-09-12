@@ -11,6 +11,7 @@ import Toast from "../../components/ToastMessage/Toast.jsx";
 import NoNotes from "../../components/NoNotes/NoNotes.jsx";
 import addNote from "../../assets/AddNotes.png";
 import emptyNote from "../../assets/NoNote.png";
+import Logo from "../../assets/LogoPng.png";
 
 ReactModal.setAppElement("#root");
 
@@ -143,7 +144,11 @@ const Home = () => {
 
   return (
     <>
-      <Navbar userInfo={userInfo} onSearchNote={onSearchNote} />
+      <Navbar
+        userInfo={userInfo}
+        onSearchNote={onSearchNote}
+        imageLogo={Logo}
+      />
       <div className="container mx-auto max-h-full my-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 mx-auto px-4">
           {allNotes.length > 0 ? (
