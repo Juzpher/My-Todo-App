@@ -5,7 +5,6 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const authenticateToken = require("./utilities");
-const bcrypt = require("bcrypt");
 //Import Models
 const User = require("./models/user.model");
 const Notes = require("./models/note.model");
@@ -13,7 +12,20 @@ const Notes = require("./models/note.model");
 const app = express();
 const config = require("./config.json");
 
-mongoose.connect(config.connectionString);
+// Make sure you have dotenv configured if using .env file
+require("dotenv").config();
+
+// Use the MONGODB_URI from environment variables or provide a default
+const MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://localhost:27017/your_database_name";
+
+mongoose
+  .connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use(express.json());
 app.use(
