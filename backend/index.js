@@ -34,11 +34,11 @@ app.use(
   })
 );
 
-// app.get("/", (req, res) => {
-//   res.json({
-//     message: "Hello World",
-//   });
-// });
+app.get("/", (req, res) => {
+  res.json({
+    message: "Hello World",
+  });
+});
 
 // Create Account (POST)
 app.post("/create-account", async (req, res) => {
