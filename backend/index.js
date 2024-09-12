@@ -12,11 +12,16 @@ const Notes = require("./models/note.model");
 const app = express();
 
 // CORS configuration
-const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:5173"];
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "https://your-frontend-render-url.onrender.com",
+];
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
         var msg =
@@ -42,7 +47,6 @@ mongoose
 
 app.use(express.json());
 
-// Routes
 app.get("/", (req, res) => {
   res.json({
     message: "Hello World",
