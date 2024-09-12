@@ -10,17 +10,30 @@ const User = require("./models/user.model");
 const Notes = require("./models/note.model");
 
 const app = express();
-const config = require("./config.json");
 
-// Make sure you have dotenv configured if using .env file
-require("dotenv").config();
+// CORS configuration
+const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:5173"];
 
-// Use the MONGODB_URI from environment variables or provide a default
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/your_database_name";
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        var msg =
+          "The CORS policy for this site does not allow access from the specified Origin.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
+// MongoDB connection
 mongoose
-  .connect(MONGODB_URI, {
+  .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -28,17 +41,13 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: "*",
-  })
-);
 
-// app.get("/", (req, res) => {
-//   res.json({
-//     message: "Hello World",
-//   });
-// });
+// Routes
+app.get("/", (req, res) => {
+  res.json({
+    message: "Hello World",
+  });
+});
 
 // Create Account (POST)
 app.post("/create-account", async (req, res) => {
@@ -358,8 +367,9 @@ app.post("/pin-note/:noteId", authenticateToken, async (req, res) => {
 });
 
 //App Listen
-app.listen(8000, () => {
-  console.log("Server is running on port 8000");
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
 
 module.exports = app;
