@@ -12,24 +12,20 @@ const Notes = require("./models/note.model");
 const app = express();
 
 // CORS configuration
-const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:5173"];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        var msg =
-          "The CORS policy for this site does not allow access from the specified Origin.";
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: "https://my-todo-app-frontend.onrender.com",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+
+// Ensure OPTIONS requests are handled
+app.options("*", cors());
+
+// Middleware
+app.use(express.json());
 
 // MongoDB connection
 mongoose
@@ -40,13 +36,9 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-app.use(express.json());
-
-// Routes
-app.get("/", (req, res) => {
-  res.json({
-    message: "Hello World",
-  });
+// Test route
+app.get("/test-cors", (req, res) => {
+  res.json({ message: "CORS is working" });
 });
 
 // Create Account (POST)
@@ -371,5 +363,7 @@ const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+module.exports = app;
 
 module.exports = app;
