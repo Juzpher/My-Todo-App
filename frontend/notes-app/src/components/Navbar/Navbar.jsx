@@ -4,6 +4,7 @@ import { MdMenu, MdClose } from "react-icons/md";
 import SearchBar from "../SearchBar/SearchBar";
 import ProfileInfo from "../Cards/ProfileInfo";
 import ThemeToggle from "../themeToggle/themeToggle";
+import Logo from "../../assets/LogoPng.png";
 
 const Navbar = ({ userInfo, onSearchNote, imageLogo }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,7 +36,7 @@ const Navbar = ({ userInfo, onSearchNote, imageLogo }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <img src={imageLogo} alt="logo" className="h-8 w-8 mr-2" />
+            <img src={Logo} alt="logo" className="h-8 w-8 mr-2" />
             <h2 className="text-xl font-bold text-text-light dark:text-text-dark">
               TaskFlow
             </h2>
