@@ -53,7 +53,14 @@ const Home = () => {
     try {
       const response = await axiosInstance.get("/get-all-notes");
       if (response.data && Array.isArray(response.data.notes)) {
-        setAllNotes(response.data.notes);
+        // Sort notes: pinned notes first, then by creation date (newest first)
+        const sortedNotes = response.data.notes.sort((a, b) => {
+          if (a.isPinned === b.isPinned) {
+            return new Date(b.createdOn) - new Date(a.createdOn);
+          }
+          return b.isPinned ? 1 : -1;
+        });
+        setAllNotes(sortedNotes);
       }
       setIsSearch(false);
     } catch (error) {
@@ -77,7 +84,14 @@ const Home = () => {
         });
         console.log("Search API response:", response.data);
         if (response.data && Array.isArray(response.data.matchingNotes)) {
-          setAllNotes(response.data.matchingNotes);
+          // Sort matching notes: pinned notes first, then by creation date
+          const sortedNotes = response.data.matchingNotes.sort((a, b) => {
+            if (a.isPinned === b.isPinned) {
+              return new Date(b.createdOn) - new Date(a.createdOn);
+            }
+            return b.isPinned ? 1 : -1;
+          });
+          setAllNotes(sortedNotes);
         } else {
           // If no matching notes, set allNotes to an empty array
           setAllNotes([]);
