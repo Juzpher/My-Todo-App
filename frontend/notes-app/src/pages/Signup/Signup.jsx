@@ -4,13 +4,16 @@ import PasswordInput from "../../components/Input/PasswordInput";
 import { Link, useNavigate } from "react-router-dom";
 import { validateEmail } from "../../utils/helper";
 import axiosInstance from "../../utils/axiosInstance";
+import Spinner from "../../components/Spinner/Spinner"; // Import Spinner
 
 const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false); // New loading state
   const navigate = useNavigate();
+
   const handleSignUp = async (e) => {
     e.preventDefault();
     if (!name) {
@@ -29,9 +32,10 @@ const Signup = () => {
       setError("Please enter a valid email address");
       return;
     }
+
     setError("");
-    // Signup API
-    
+    setLoading(true); // Set loading to true
+
     try {
       const response = await axiosInstance.post("/create-account", {
         fullName: name,
@@ -39,24 +43,29 @@ const Signup = () => {
         password: password,
       });
 
-      //Handle Successful registration response
+      // Handle Successful registration response
       if (response.data && response.data.accessToken) {
         localStorage.setItem("token", response.data.accessToken);
         navigate("/dashboard");
       } else if (response.data && response.data.message) {
         setError(response.data.message);
       }
-      
     } catch (error) {
-
-      //Handle Registration error
-      if (error.response && error.response.data && error.response.data.message) {
+      // Handle Registration error
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
         setError(error.response.data.message);
       } else {
         setError("An error occurred. Please try again later.");
       }
+    } finally {
+      setLoading(false); // Set loading to false after the request completes
     }
   };
+
   return (
     <>
       <Navbar />
@@ -84,15 +93,21 @@ const Signup = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            {error && (
-              <p className="text-critical-default dark:text-critical-dark">
-                {error}
-              </p>
-            )}
-            <button type="submit" className="btn btn-primary">
-              Sign Up
+            {error && <p className="text-critical-default">{error}</p>}
+            <button
+              type="submit"
+              className="btn btn-primary w-full flex items-center justify-center" // Added flex and justify-center
+              disabled={loading} // Disable button while loading
+            >
+              {loading ? ( // Show loading state
+                <span className="flex items-center">
+                  <Spinner />
+                </span>
+              ) : (
+                "Sign Up"
+              )}
             </button>
-            <p className="text-sm text-center mt-4 text-text-default dark:text-text-dark">
+            <p className="text-sm text-center text-text-default dark:text-text-dark mt-4">
               Already have an account?{" "}
               <Link
                 to="/login"
