@@ -4,11 +4,13 @@ import { Link, useNavigate } from "react-router-dom";
 import PasswordInput from "../../components/Input/PasswordInput";
 import { validateEmail } from "../../utils/helper";
 import axiosInstance from "../../utils/axiosInstance";
+import Spinner from "../../components/Spinner/Spinner"; // Import Spinner
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false); // New loading state
 
   const navigate = useNavigate();
   const handleLogin = async (e) => {
@@ -23,8 +25,7 @@ const Login = () => {
     }
 
     setError("");
-    
-    // Login API
+    setLoading(true); // Set loading to true
 
     try {
       const response = await axiosInstance.post("/login", {
@@ -37,11 +38,17 @@ const Login = () => {
         navigate("/dashboard");
       }
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
         setError(error.response.data.message);
       } else {
         setError("An error occurred. Please try again later.");
       }
+    } finally {
+      setLoading(false); // Set loading to false after the request completes
     }
   };
 
@@ -66,8 +73,18 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
             {error && <p className="text-critical-default">{error}</p>}
-            <button type="submit" className="btn btn-primary">
-              Login
+            <button
+              type="submit"
+              className="btn btn-primary w-full flex items-center justify-center" // Added flex and justify-center
+              disabled={loading} // Disable button while loading
+            >
+              {loading ? ( // Show loading state
+                <span className="flex items-center">
+                  <Spinner />
+                </span>
+              ) : (
+                "Login"
+              )}
             </button>
             <p className="text-sm text-center text-text-default dark:text-text-dark mt-4">
               Not registered yet?{" "}

@@ -14,10 +14,13 @@ const app = express();
 // CORS configuration
 app.use(
   cors({
-    origin: "https://my-todo-app-frontend.onrender.com",
+    origin: [
+      "https://my-todo-app-frontend.onrender.com", // Production origin
+      "http://localhost:5173", // Development origin
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
+    credentials: true, // Allow credentials if needed
   })
 );
 
@@ -35,11 +38,6 @@ mongoose
   })
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
-
-// Test route
-app.get("/test-cors", (req, res) => {
-  res.json({ message: "CORS is working" });
-});
 
 // Create Account (POST)
 app.post("/create-account", async (req, res) => {

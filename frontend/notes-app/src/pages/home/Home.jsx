@@ -11,6 +11,7 @@ import Toast from "../../components/ToastMessage/Toast.jsx";
 import NoNotes from "../../components/NoNotes/NoNotes.jsx";
 import addNote from "../../assets/AddNotes.png";
 import emptyNote from "../../assets/NoNote.png";
+import { motion } from "framer-motion"; // Import motion from framer-motion
 
 ReactModal.setAppElement("#root");
 
@@ -141,47 +142,73 @@ const Home = () => {
     }
   };
 
+  // Define animation variants
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.2, // Stagger the children by 0.2 seconds
+      },
+    },
+  };
+
   return (
     <>
       <Navbar userInfo={userInfo} onSearchNote={onSearchNote} />
       <div className="container mx-auto max-h-full my-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 mx-auto px-4">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 mx-auto px-4"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {allNotes.length > 0 ? (
             allNotes.map((item) => (
-              <NoteCard
+              <motion.div
                 key={item._id}
-                title={item.title}
-                date={moment(item.createdOn).format("Do MMM YYYY")}
-                content={item.content}
-                tags={item.tags} // Join tags with comma for display
-                urgency={item.urgency}
-                isPinned={item.isPinned}
-                onEdit={() => {
-                  setOpenAddEditModal({
-                    isShown: true,
-                    type: "edit",
-                    data: item,
-                  });
-                }}
-                onDelete={async () => {
-                  try {
-                    await axiosInstance.delete(`/delete-note/${item._id}`);
-                    getAllNotes(); // Refresh notes after deleting
-                    displayToastMsg("Note deleted successfully");
-                    setShowToastMsg({
+                variants={cardVariants} // Use the defined variants
+              >
+                <NoteCard
+                  title={item.title}
+                  date={moment(item.createdOn).format("Do MMM YYYY")}
+                  content={item.content}
+                  tags={item.tags} // Join tags with comma for display
+                  urgency={item.urgency}
+                  isPinned={item.isPinned}
+                  onEdit={() => {
+                    setOpenAddEditModal({
                       isShown: true,
-                      message: "Note deleted successfully",
-                      type: "delete",
+                      type: "edit",
+                      data: item,
                     });
-                  } catch (error) {
-                    console.log(
-                      "Failed to delete note. Please try again later."
-                    );
-                    displayToastMsg("Failed to delete note. Please try again.");
-                  }
-                }}
-                onPinNote={() => updateIsPinned(item._id, item.isPinned)}
-              />
+                  }}
+                  onDelete={async () => {
+                    try {
+                      await axiosInstance.delete(`/delete-note/${item._id}`);
+                      getAllNotes(); // Refresh notes after deleting
+                      displayToastMsg("Note deleted successfully");
+                      setShowToastMsg({
+                        isShown: true,
+                        message: "Note deleted successfully",
+                        type: "delete",
+                      });
+                    } catch (error) {
+                      console.log(
+                        "Failed to delete note. Please try again later."
+                      );
+                      displayToastMsg(
+                        "Failed to delete note. Please try again."
+                      );
+                    }
+                  }}
+                  onPinNote={() => updateIsPinned(item._id, item.isPinned)}
+                />
+              </motion.div>
             ))
           ) : (
             <div className="col-span-3">
@@ -195,7 +222,7 @@ const Home = () => {
               />
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
       <button
         className="w-12 h-12 rounded-full flex justify-center items-center fixed bottom-10 right-10 bg-accent-default dark:bg-accent-dark hover:bg-accent-default/50 dark:hover:bg-accent-dark/50 hover:scale-105 transition-all ease-in-out"
