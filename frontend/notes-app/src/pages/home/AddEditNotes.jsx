@@ -3,6 +3,7 @@ import TagInput from "../../components/Input/TagInput.jsx";
 import { MdClose } from "react-icons/md";
 import InputError from "../../components/PopUps/inputError.jsx";
 import axiosInstance from "../../utils/axiosInstance.js";
+import Spinner from "../../components/Spinner/Spinner.jsx";
 
 const AddEditNotes = ({ onClose, data, type, getAllNotes, showToastMsg }) => {
   const [activeButton, setActiveButton] = useState("");
@@ -11,6 +12,7 @@ const AddEditNotes = ({ onClose, data, type, getAllNotes, showToastMsg }) => {
   const [content, setContent] = useState("");
   const [urgency, setUrgency] = useState("");
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false); // New loading state
 
   useEffect(() => {
     if (type === "edit" && data) {
@@ -41,6 +43,7 @@ const AddEditNotes = ({ onClose, data, type, getAllNotes, showToastMsg }) => {
       return;
     }
     setError("");
+    setLoading(true); // Set loading to true
 
     try {
       let response;
@@ -81,6 +84,8 @@ const AddEditNotes = ({ onClose, data, type, getAllNotes, showToastMsg }) => {
         console.log("An unexpected error occurred.");
         showToastMsg("An unexpected error occurred", "error");
       }
+    } finally {
+      setLoading(false); // Set loading to false after the request completes
     }
   };
 
@@ -160,10 +165,19 @@ const AddEditNotes = ({ onClose, data, type, getAllNotes, showToastMsg }) => {
         </div>
 
         <button
-          className="w-full bg-accent-default hover:bg-accent-effects dark:bg-accent-dark dark:hover:bg-accent-effects text-text-dark font-medium py-2 px-4 rounded-md transition-colors duration-200 text-sm"
+          className="w-full bg-accent-default hover:bg-accent-effects dark:bg-accent-dark dark:hover:bg-accent-effects text-text-dark font-medium py-2 px-4 rounded-md transition-colors duration-200 text-sm flex items-center justify-center" // Added flex and justify-center
           onClick={handleAddNote}
+          disabled={loading} // Disable button while loading
         >
-          {type === "add" ? "Add Note" : "Update Note"}
+          {loading ? ( // Show loading state
+            <span className="flex items-center">
+              <Spinner />
+            </span>
+          ) : type === "add" ? (
+            "Add Note"
+          ) : (
+            "Update Note"
+          )}
         </button>
       </div>
     </div>
