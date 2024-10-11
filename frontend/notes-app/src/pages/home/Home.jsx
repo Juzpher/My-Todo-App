@@ -12,6 +12,7 @@ import NoNotes from "../../components/NoNotes/NoNotes.jsx";
 import addNote from "../../assets/AddNotes.png";
 import emptyNote from "../../assets/NoNote.png";
 import { motion } from "framer-motion"; // Import motion from framer-motion
+import LazyCard from "../../components/Lazy/Card/LazyCard.jsx";
 
 ReactModal.setAppElement("#root");
 
@@ -29,6 +30,7 @@ const Home = () => {
   });
 
   const [allNotes, setAllNotes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true); // Define loading state
   const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
 
@@ -51,6 +53,7 @@ const Home = () => {
 
   // Get all notes API
   const getAllNotes = async () => {
+    setIsLoading(true); // Set loading to true
     try {
       const response = await axiosInstance.get("/get-all-notes");
       if (response.data && Array.isArray(response.data.notes)) {
@@ -67,6 +70,8 @@ const Home = () => {
     } catch (error) {
       console.log("An unexpected error occurred. Please try again later.");
       displayToastMsg("Failed to fetch notes. Please try again.", "error");
+    } finally {
+      setIsLoading(false); // Set loading to false after the request completes
     }
   };
 
@@ -167,7 +172,12 @@ const Home = () => {
           initial="hidden"
           animate="visible"
         >
-          {allNotes.length > 0 ? (
+          {isLoading ? (
+            // Show LazyCard while loading, matching the number of notes
+            Array.from({ length: allNotes.length || 0 }).map((_, index) => (
+              <LazyCard key={index} />
+            ))
+          ) : allNotes.length > 0 ? (
             allNotes.map((item) => (
               <motion.div
                 key={item._id}
