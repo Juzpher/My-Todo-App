@@ -50,18 +50,20 @@ const NoteCard = ({
         </p>
 
         {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="mb-4 h-8">
           {tags && tags.length > 0 ? (
-            tags.map((tag, index) => (
-              <span
-                key={index}
-                className="text-xs bg-secondary-default dark:bg-secondary-dark text-text-default dark:text-text-dark px-3 py-1 rounded-full"
-              >
-                {tag}
-              </span>
-            ))
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+              {tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="text-xs bg-secondary-default dark:bg-secondary-dark text-text-default dark:text-text-dark px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           ) : (
-            <br />
+            <div className="h-8"></div>
           )}
         </div>
 

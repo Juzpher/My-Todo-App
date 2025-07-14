@@ -6,15 +6,21 @@ import { validateEmail } from "../../utils/helper";
 import axiosInstance from "../../utils/axiosInstance";
 import Spinner from "../../components/Spinner/Spinner"; // Import Spinner
 
-const Login = () => {
+const Login = ({ setIsAuthenticated }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false); // New loading state
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    // Clear any previous errors
+    setError("");
+
+    // Validation
     if (!validateEmail(email)) {
       setError("Please enter a valid email address");
       return;
@@ -24,31 +30,50 @@ const Login = () => {
       return;
     }
 
-    setError("");
-    setLoading(true); // Set loading to true
+    setLoading(true);
 
     try {
       const response = await axiosInstance.post("/login", {
-        email: email,
+        email: email.trim(),
         password: password,
       });
 
-      if (response.data && response.data.accessToken) {
+      // Check for successful response
+      if (response.data && !response.data.error && response.data.accessToken) {
+        // Store the token
         localStorage.setItem("token", response.data.accessToken);
-        navigate("/dashboard");
+
+        // Update authentication state
+        if (setIsAuthenticated) {
+          setIsAuthenticated(true);
+        }
+
+        // Navigate to dashboard
+        navigate("/dashboard", { replace: true });
+      } else {
+        // Handle case where response doesn't have expected structure
+        setError(response.data?.message || "Login failed. Please try again.");
       }
     } catch (error) {
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        setError(error.response.data.message);
+      console.error("Login error:", error);
+
+      // Handle different types of errors
+      if (error.response) {
+        // Server responded with error status
+        const errorMessage =
+          error.response.data?.message || "Invalid credentials";
+        setError(errorMessage);
+      } else if (error.request) {
+        // Request was made but no response received
+        setError(
+          "Unable to connect to server. Please check your internet connection."
+        );
       } else {
-        setError("An error occurred. Please try again later.");
+        // Something else happened
+        setError("An unexpected error occurred. Please try again later.");
       }
     } finally {
-      setLoading(false); // Set loading to false after the request completes
+      setLoading(false);
     }
   };
 
