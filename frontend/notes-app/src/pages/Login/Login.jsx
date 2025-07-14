@@ -14,6 +14,13 @@ const Login = ({ setIsAuthenticated }) => {
 
   const navigate = useNavigate();
 
+  // Function to fill demo credentials
+  const fillDemoCredentials = () => {
+    setEmail("email.demo@gmail.com");
+    setPassword("password");
+    setError(""); // Clear any existing errors
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -97,6 +104,33 @@ const Login = ({ setIsAuthenticated }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            {/* Demo Credentials */}
+            <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3 mb-4 text-center">
+              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
+                Demo Credentials
+              </p>
+              <div className="space-y-1 mb-3">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  📧{" "}
+                  <span className="font-mono text-blue-600 dark:text-blue-400">
+                    email.demo@gmail.com
+                  </span>
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  🔑{" "}
+                  <span className="font-mono text-blue-600 dark:text-blue-400">
+                    password
+                  </span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fillDemoCredentials}
+                className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-md transition-colors duration-200 font-medium"
+              >
+                Use Demo
+              </button>
+            </div>
             {error && <p className="text-critical-default">{error}</p>}
             <button
               type="submit"
