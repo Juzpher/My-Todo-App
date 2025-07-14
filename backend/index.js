@@ -4,6 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const path = require("path");
 const authenticateToken = require("./utilities");
 //Import Models
 const User = require("./models/user.model");
@@ -12,20 +14,34 @@ const Notes = require("./models/note.model");
 const app = express();
 
 // CORS configuration
-app.use(
-  cors({
-    origin: [
-      "https://my-todo-app-frontend.onrender.com", // Production origin
-      "http://localhost:5173", // Development origin
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true, // Allow credentials if needed
-  })
-);
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      "https://my-todo-app-frontend.onrender.com",
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:5173",
+    ];
 
-// Ensure OPTIONS requests are handled
-app.options("*", cors());
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  credentials: true,
+  optionsSuccessStatus: 200, // For legacy browser support
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options("*", cors(corsOptions));
 
 // Middleware
 app.use(express.json());
@@ -41,89 +57,154 @@ mongoose
 
 // Create Account (POST)
 app.post("/create-account", async (req, res) => {
-  const { fullName, email, password } = req.body;
+  try {
+    const { fullName, email, password } = req.body;
 
-  if (!fullName) {
-    return res
-      .status(400)
-      .json({ error: true, message: "Please enter your full name." });
-  }
+    if (!fullName) {
+      return res
+        .status(400)
+        .json({ error: true, message: "Please enter your full name." });
+    }
 
-  if (!email) {
-    return res
-      .status(400)
-      .json({ error: true, message: "Please enter your email." });
-  }
+    if (!email) {
+      return res
+        .status(400)
+        .json({ error: true, message: "Please enter your email." });
+    }
 
-  if (!password) {
-    return res
-      .status(400)
-      .json({ error: true, message: "Please enter your password." });
-  }
+    if (!password) {
+      return res
+        .status(400)
+        .json({ error: true, message: "Please enter your password." });
+    }
 
-  const isUser = await User.findOne({ email: email });
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res
+        .status(400)
+        .json({ error: true, message: "Please enter a valid email address." });
+    }
 
-  if (isUser) {
+    // Validate password strength
+    if (password.length < 6) {
+      return res.status(400).json({
+        error: true,
+        message: "Password must be at least 6 characters long.",
+      });
+    }
+
+    const isUser = await User.findOne({ email: email });
+
+    if (isUser) {
+      return res.status(400).json({
+        error: true,
+        message: "User already exists.",
+      });
+    }
+
+    // Hash the password before saving
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const user = new User({
+      fullName,
+      email,
+      password: hashedPassword,
+    });
+
+    await user.save();
+
+    const accessToken = jwt.sign(
+      { user: { _id: user._id, email: user.email, fullName: user.fullName } },
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: "36000m",
+      }
+    );
+
     return res.json({
+      error: false,
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+      },
+      message: "Account created successfully.",
+      accessToken,
+    });
+  } catch (error) {
+    console.error("Error creating account:", error);
+    return res.status(500).json({
       error: true,
-      message: "User already exists.",
+      message: "Internal server error. Please try again later.",
     });
   }
-
-  const user = new User({
-    fullName,
-    email,
-    password,
-  });
-
-  await user.save();
-
-  const accessToken = jwt.sign({ user }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "36000m",
-  });
-
-  return res.json({
-    error: false,
-    user,
-    message: "Account created successfully.",
-    accessToken,
-  });
 });
 
 //Login (POST)
 app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ message: "Email is Required" });
-  }
+    if (!email) {
+      return res.status(400).json({
+        error: true,
+        message: "Email is required",
+      });
+    }
 
-  if (!password) {
-    return res.status(400).json({ message: "Password is Required" });
-  }
+    if (!password) {
+      return res.status(400).json({
+        error: true,
+        message: "Password is required",
+      });
+    }
 
-  const userInfo = await User.findOne({ email: email });
+    const userInfo = await User.findOne({ email: email });
 
-  if (!userInfo) {
-    return res.status(400).json({ message: "User does not exist." });
-  }
+    if (!userInfo) {
+      return res
+        .status(400)
+        .json({ error: true, message: "User does not exist." });
+    }
 
-  if (userInfo.email == email && userInfo.password == password) {
-    const user = { user: userInfo };
-    const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: "36000m",
+    // Compare the provided password with the hashed password
+    const isPasswordValid = await bcrypt.compare(password, userInfo.password);
+
+    if (userInfo.email === email && isPasswordValid) {
+      const user = {
+        user: {
+          _id: userInfo._id,
+          email: userInfo.email,
+          fullName: userInfo.fullName,
+        },
+      };
+      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "36000m",
+      });
+
+      return res.json({
+        error: false,
+        user: {
+          _id: userInfo._id,
+          fullName: userInfo.fullName,
+          email: userInfo.email,
+        },
+        message: "Login Successful",
+        accessToken,
+      });
+    } else {
+      return res
+        .status(400)
+        .json({ error: true, message: "Invalid Credentials" });
+    }
+  } catch (error) {
+    console.error("Error during login:", error);
+    return res.status(500).json({
+      error: true,
+      message: "Internal server error. Please try again later.",
     });
-
-    return res.json({
-      error: false,
-      user,
-      message: "Login Successful",
-      accessToken,
-    });
-  } else {
-    return res
-      .status(400)
-      .json({ error: true, message: "Invalid Credentials" });
   }
 });
 
@@ -356,12 +437,26 @@ app.post("/pin-note/:noteId", authenticateToken, async (req, res) => {
   }
 });
 
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({ status: "OK", message: "Server is running" });
+});
+
+// Catch-all handler for SPA routing (handle frontend routes)
+app.get("*", (req, res) => {
+  // Only serve this for non-API routes
+  if (!req.path.startsWith("/api")) {
+    res.status(404).json({
+      error: true,
+      message: "API endpoint not found. Please check your request URL.",
+    });
+  }
+});
+
 //App Listen
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-module.exports = app;
 
 module.exports = app;

@@ -6,21 +6,26 @@ import { validateEmail } from "../../utils/helper";
 import axiosInstance from "../../utils/axiosInstance";
 import Spinner from "../../components/Spinner/Spinner"; // Import Spinner
 
-const Signup = () => {
+const Signup = ({ setIsAuthenticated }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false); // New loading state
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    if (!name) {
+
+    // Clear any previous errors
+    setError("");
+
+    // Validation
+    if (!name.trim()) {
       setError("Please enter your name");
       return;
     }
-    if (!email) {
+    if (!email.trim()) {
       setError("Please enter your email");
       return;
     }
@@ -32,37 +37,58 @@ const Signup = () => {
       setError("Please enter a valid email address");
       return;
     }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
 
-    setError("");
-    setLoading(true); // Set loading to true
+    setLoading(true);
 
     try {
       const response = await axiosInstance.post("/create-account", {
-        fullName: name,
-        email: email,
+        fullName: name.trim(),
+        email: email.trim(),
         password: password,
       });
 
-      // Handle Successful registration response
-      if (response.data && response.data.accessToken) {
+      // Check for successful response
+      if (response.data && !response.data.error && response.data.accessToken) {
+        // Store the token
         localStorage.setItem("token", response.data.accessToken);
-        navigate("/dashboard");
-      } else if (response.data && response.data.message) {
-        setError(response.data.message);
+
+        // Update authentication state
+        if (setIsAuthenticated) {
+          setIsAuthenticated(true);
+        }
+
+        // Navigate to dashboard
+        navigate("/dashboard", { replace: true });
+      } else {
+        // Handle case where response doesn't have expected structure
+        setError(
+          response.data?.message || "Registration failed. Please try again."
+        );
       }
     } catch (error) {
-      // Handle Registration error
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        setError(error.response.data.message);
+      console.error("Signup error:", error);
+
+      // Handle different types of errors
+      if (error.response) {
+        // Server responded with error status
+        const errorMessage =
+          error.response.data?.message || "Registration failed";
+        setError(errorMessage);
+      } else if (error.request) {
+        // Request was made but no response received
+        setError(
+          "Unable to connect to server. Please check your internet connection."
+        );
       } else {
-        setError("An error occurred. Please try again later.");
+        // Something else happened
+        setError("An unexpected error occurred. Please try again later.");
       }
     } finally {
-      setLoading(false); // Set loading to false after the request completes
+      setLoading(false);
     }
   };
 
